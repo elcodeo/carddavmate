@@ -19,6 +19,11 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Replaces special chars (e.g. whitespace) in the username
+function getUrlFriendlyUsername() {
+	return globalLoginUsername.replace(/ /g, '%20');
+}
+
 // VersionCheck (check for new version)
 function netVersionCheck()
 {
@@ -132,9 +137,9 @@ function netCheckAndCreateConfiguration(configurationURL)
 				globalAccountSettings[globalAccountSettings.length]=$.extend({}, configurationURL);
 				globalAccountSettings[globalAccountSettings.length-1].type='network';
 				if(typeof(globalAccountSettingsHook)=='function')	// Hook for globalAccountSettings (openCRX)
-					globalAccountSettings[globalAccountSettings.length-1].href=globalAccountSettingsHook(configurationURL.href, globalLoginUsername);
+					globalAccountSettings[globalAccountSettings.length-1].href=globalAccountSettingsHook(configurationURL.href, getUrlFriendlyUsername());
 				else	// standard version
-					globalAccountSettings[globalAccountSettings.length-1].href=configurationURL.href+globalLoginUsername+'/';
+					globalAccountSettings[globalAccountSettings.length-1].href=configurationURL.href+getUrlFriendlyUsername()+'/';
 				globalAccountSettings[globalAccountSettings.length-1].userAuth={userName: globalLoginUsername, userPassword: globalLoginPassword};
 				count++;
 
@@ -500,7 +505,7 @@ function DAVresourceDelegation(inputResource, index, lastIndex)
 	var delegationXML='';
 	if(typeof inputResource.extendedDelegation!='undefined' && inputResource.extendedDelegation)
 	{
-		if(inputResource.href.indexOf(globalLoginUsername)!=-1 && inputResource.settingsAccount && (globalSettings.settingstype.value=='' || globalSettings.settingstype.value==null || (globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null && globalSettings.settingstype.value=='principal-URL')))
+		if(inputResource.href.indexOf(getUrlFriendlyUsername())!=-1 && inputResource.settingsAccount && (globalSettings.settingstype.value=='' || globalSettings.settingstype.value==null || (globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null && globalSettings.settingstype.value=='principal-URL')))
 			settingsXML = '<D:property name="settings" namespace="http://inf-it.com/ns/dav/"/>';
 		delegationXML='<?xml version="1.0" encoding="utf-8"?><D:expand-property xmlns:D="DAV:"><D:property name="calendar-proxy-read-for" namespace="http://calendarserver.org/ns/"><D:property name="resourcetype"/><D:property name="current-user-privilege-set"/><D:property name="displayname"/><D:property name="calendar-user-address-set" namespace="urn:ietf:params:xml:ns:caldav"/><D:property name="calendar-home-set" namespace="urn:ietf:params:xml:ns:caldav"/><D:property name="addressbook-home-set" namespace="urn:ietf:params:xml:ns:carddav"/></D:property><D:property name="calendar-proxy-write-for" namespace="http://calendarserver.org/ns/"><D:property name="resourcetype"/><D:property name="current-user-privilege-set"/><D:property name="displayname"/><D:property name="calendar-user-address-set" namespace="urn:ietf:params:xml:ns:caldav"/><D:property name="calendar-home-set" namespace="urn:ietf:params:xml:ns:caldav"/><D:property name="addressbook-home-set" namespace="urn:ietf:params:xml:ns:carddav"/></D:property>'+settingsXML+'<D:property name="resourcetype"/><D:property name="current-user-privilege-set"/><D:property name="displayname"/><D:property name="calendar-user-address-set" namespace="urn:ietf:params:xml:ns:caldav"/><D:property name="calendar-home-set" namespace="urn:ietf:params:xml:ns:caldav"/><D:property name="addressbook-home-set" namespace="urn:ietf:params:xml:ns:carddav"/></D:expand-property>';
 	}
@@ -565,7 +570,7 @@ function DAVresourceDelegation(inputResource, index, lastIndex)
 
 			});
 		}
-		if(typeof inputResource.extendedDelegation!='undefined' && inputResource.extendedDelegation && !settingsLoaded && inputResource.href.indexOf(globalLoginUsername)!=-1 && inputResource.settingsAccount && (globalSettings.settingstype.value=='' || globalSettings.settingstype.value==null || (globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null && globalSettings.settingstype.value=='principal-URL')))
+		if(typeof inputResource.extendedDelegation!='undefined' && inputResource.extendedDelegation && !settingsLoaded && inputResource.href.indexOf(getUrlFriendlyUsername())!=-1 && inputResource.settingsAccount && (globalSettings.settingstype.value=='' || globalSettings.settingstype.value==null || (globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null && globalSettings.settingstype.value=='principal-URL')))
 		{
 			var settings=$(xml.responseXML).children().filterNsNode('multistatus').children().filterNsNode('response').children().filterNsNode('propstat').children().filterNsNode('prop').children().filterNsNode('settings').text();
 			if(settings!='')
@@ -1044,7 +1049,7 @@ function netFindResource(inputResource, inputResourceIndex, forceLoad, indexR, l
 	var uidBase=tmp[1]+inputResource.userAuth.userName+'@'+tmp[2];
 	var uidFull=tmp[1]+inputResource.userAuth.userName+'@'+tmp[2]+tmp[3];	// for the error handler
 	var settingsXML='';
-	if(inputResource.href.indexOf(globalLoginUsername)!=-1 && inputResource.settingsAccount && (globalSettings.settingstype.value=='' || globalSettings.settingstype.value==null || (globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null && globalSettings.settingstype.value=='principal-URL')))
+	if(inputResource.href.indexOf(getUrlFriendlyUsername())!=-1 && inputResource.settingsAccount && (globalSettings.settingstype.value=='' || globalSettings.settingstype.value==null || (globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null && globalSettings.settingstype.value=='principal-URL')))
 		settingsXML='<I:settings xmlns:I="http://inf-it.com/ns/dav/"/>';
 
 	var baseHref=tmp[1]+tmp[2];
@@ -1141,7 +1146,7 @@ function netFindResource(inputResource, inputResourceIndex, forceLoad, indexR, l
 			if(isAvaible('CardDavMATE') && !globalCardDAVInitLoad)
 				handleCardDAVError(false, inputResource);
 
-			if(!settingsLoaded && inputResource.href.indexOf(globalLoginUsername)!=-1 && inputResource.settingsAccount && (globalSettings.settingstype.value=='' || globalSettings.settingstype.value==null || (globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null && globalSettings.settingstype.value=='principal-URL')))
+			if(!settingsLoaded && inputResource.href.indexOf(getUrlFriendlyUsername())!=-1 && inputResource.settingsAccount && (globalSettings.settingstype.value=='' || globalSettings.settingstype.value==null || (globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null && globalSettings.settingstype.value=='principal-URL')))
 			{
 				var settings=$(xml.responseXML).children().filterNsNode('multistatus').children().filterNsNode('response').children().filterNsNode('propstat').children().filterNsNode('prop').children().filterNsNode('settings').text();
 				if(settings!='')
@@ -1161,7 +1166,7 @@ function netFindResource(inputResource, inputResourceIndex, forceLoad, indexR, l
 					loadSettings(JSON.stringify(globalSettings), false, false);
 				}
 			}
-			else if(!globalSyncSettingsSave && inputResource.href.indexOf(globalLoginUsername)!=-1 && ((isAvaible('CardDavMATE')&&globalCardDAVResourceSync) || (isAvaible('CalDavZAP')&&globalCalDAVResourceSync)))
+			else if(!globalSyncSettingsSave && inputResource.href.indexOf(getUrlFriendlyUsername())!=-1 && ((isAvaible('CardDavMATE')&&globalCardDAVResourceSync) || (isAvaible('CalDavZAP')&&globalCalDAVResourceSync)))
 			{
 				globalSyncSettingsSave=true;
 				var loadedCals = new Array(), loadedTodoCals = new Array(), loadedAddrs = new Array();
@@ -1354,7 +1359,7 @@ function netLoadResource(inputResource, inputHref, hrefMode, inputResourceIndex,
 	}
 
 	var settingsXML='';
-	if(inputResource.href.indexOf(globalLoginUsername)!=-1 && inputResource.settingsAccount && globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null)
+	if(inputResource.href.indexOf(getUrlFriendlyUsername())!=-1 && inputResource.settingsAccount && globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null)
 		if((globalSettings.settingstype.value=='addressbook-home-set' && inputResource.abhref==inputHref) || (globalSettings.settingstype.value=='calendar-home-set' && inputResource.cahref==inputHref) || (globalSettings.settingstype.value=='principal-URL'&& ((isAvaible('CardDavMATE')&&globalCardDAVResourceSync) || (isAvaible('CalDavZAP')&&globalCalDAVResourceSync))))
 			settingsXML='<I:settings xmlns:I="http://inf-it.com/ns/dav/"/>';
 
@@ -1377,7 +1382,7 @@ function netLoadResource(inputResource, inputHref, hrefMode, inputResourceIndex,
 		isHrefSet=false;
 		var calendarNo=0;
 		var resultTimestamp=new Date().getTime();
-		if(!settingsLoaded && inputResource.href.indexOf(globalLoginUsername)!=-1 && inputResource.settingsAccount && globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null)
+		if(!settingsLoaded && inputResource.href.indexOf(getUrlFriendlyUsername())!=-1 && inputResource.settingsAccount && globalSettings.settingstype.value!='' && globalSettings.settingstype.value!=null)
 		{
 			if((globalSettings.settingstype.value=='addressbook-home-set' && inputResource.abhref==inputHref) || (globalSettings.settingstype.value=='calendar-home-set' && inputResource.cahref==inputHref))
 			{
@@ -1415,12 +1420,12 @@ function netLoadResource(inputResource, inputHref, hrefMode, inputResourceIndex,
 				}
 			}
 		}
-		else if(!settingsLoaded && inputResource.href.indexOf(globalLoginUsername)!=-1)
+		else if(!settingsLoaded && inputResource.href.indexOf(getUrlFriendlyUsername())!=-1)
 		{
 			delete globalSettings.version.value;
 			loadSettings(JSON.stringify(globalSettings), false, false);
 		}
-		else if(!globalSyncSettingsSave && inputResource.href.indexOf(globalLoginUsername)!=-1 && ((isAvaible('CardDavMATE')&&globalCardDAVResourceSync) || (isAvaible('CalDavZAP')&&globalCalDAVResourceSync)))
+		else if(!globalSyncSettingsSave && inputResource.href.indexOf(getUrlFriendlyUsername())!=-1 && ((isAvaible('CardDavMATE')&&globalCardDAVResourceSync) || (isAvaible('CalDavZAP')&&globalCalDAVResourceSync)))
 		{
 			globalSyncSettingsSave=true;
 			var loadedCals = new Array(), loadedTodoCals = new Array(), loadedAddrs = new Array();
